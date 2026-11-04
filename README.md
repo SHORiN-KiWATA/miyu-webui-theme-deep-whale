@@ -16,6 +16,8 @@ miyu pkg install miyu-webui-theme-deep-whale
 
 代码 MIT（LICENSE）。美术（web/art/）照 CC BY-NC-SA 4.0（LICENSE-ARTWORK）：只能非商业使用，保留署名，衍生作品照同一许可。署名链：上善 → ZipZipPipe → Small-tailqwq，详见 NOTICE。
 
+DeepSeek 的名称和标志是杭州深度求索人工智能基础技术研究有限公司的商标。本包是第三方作品，与 DeepSeek 没有关联，也没有经过它的认可或授权。
+
 ---
 
-A whale-girl maid theme for the Miyu web UI, ported from dsh-deep-whale. Code MIT; artwork CC BY-NC-SA 4.0 with attribution chain in NOTICE.
+A whale-girl maid theme for the Miyu web UI, ported from dsh-deep-whale. Code MIT; artwork CC BY-NC-SA 4.0 with attribution chain in NOTICE. DeepSeek and its logo are trademarks of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.; this is a third-party package, not affiliated with, endorsed by or sponsored by DeepSeek.

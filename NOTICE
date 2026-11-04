@@ -22,3 +22,8 @@ maid-atelier（深海女仆工坊）。代码是重写的，照 MIT 许可（LIC
 画的 Deepy 小鲸鱼，收在 MIT 许可的 dsh-TUI（https://github.com/wp3171216237/dsh-TUI）里，经 dsh-claude-style 带过来。
 
 吉祥物 Deepy（web/mascot/ 下的帧图）同样出自 calmly-eating-bugs（@wp3171216237），收在 MIT 许可的 dsh-TUI 里。
+
+商标声明：DeepSeek 的名称和标志是杭州深度求索人工智能基础技术研究有限公司的商标。本包和上游的美术里带有 DeepSeek 元素
+（鲸鱼形象、配色），只为致敬；本包是第三方作品，与 DeepSeek 没有关联，也没有经过它的认可或授权。
+Trademark notice: DeepSeek and its logo are trademarks of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
+This package is a third-party fan work, not affiliated with, endorsed by or sponsored by DeepSeek.
