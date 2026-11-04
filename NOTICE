@@ -1,0 +1,24 @@
+miyu-webui-theme-deep-whale —— Miyu 网页的鲸鱼娘外观包
+================================================================
+
+移植自 Small-tailqwq 的 dsh-deep-whale（https://github.com/Small-tailqwq/dsh-deep-whale）里的皮肤
+maid-atelier（深海女仆工坊）。代码是重写的，照 MIT 许可（LICENSE）；美术（web/art/ 下面的全部图片）
+不在 MIT 范围内，照 CC BY-NC-SA 4.0（LICENSE-ARTWORK）：只能非商业使用、必须保留下面完整的署名链、
+衍生作品照同一许可共享。
+
+美术的署名链（照上游 NOTICE，原文见 web/art/NOTICE.upstream）：
+
+1. 一创：上善 —— 鲸鱼娘角色形象的原作者。
+   https://www.pixiv.net/users/62155430 · Bilibili：上善无形
+2. 二创：ZipZipPipe —— 在上善的鲸鱼娘形象上加入 DeepSeek 元素的女仆鲸鱼娘二次设计。
+   https://www.pixiv.net/users/18604994 · Bilibili：ZipZipPipe
+3. 三创：Small-tailqwq —— dsh-deep-whale 的 maid-atelier 皮肤，本包用到的立绘、背景、边框装饰
+   都出自这里。
+
+本包对美术的改动：改了文件名；左栏的角花（corner-*.webp）是从上游 maid-sidebar-corner-v1.webp 裁出右上角
+一块、缩小，再镜像出四个角（原版在页面里用 CSS 裁、镜像，这里预先做好）。别的图没有改。
+
+另外：首页鲸鱼圆章里的像素小鲸鱼（web/art/emblem-whale.png）是 Deepy 的一帧，出自 calmly-eating-bugs（@wp3171216237）
+画的 Deepy 小鲸鱼，收在 MIT 许可的 dsh-TUI（https://github.com/wp3171216237/dsh-TUI）里，经 dsh-claude-style 带过来。
+
+吉祥物 Deepy（web/mascot/ 下的帧图）同样出自 calmly-eating-bugs（@wp3171216237），收在 MIT 许可的 dsh-TUI 里。

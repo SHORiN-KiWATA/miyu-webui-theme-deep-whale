@@ -1,0 +1,48 @@
+{
+  "id": "miyu-webui-theme-deep-whale",
+  "version": "0.1.0",
+  "name": {
+    "zh": "大肥鱼",
+    "en": "Deep whale",
+    "ja": "クジラ娘"
+  },
+  "summary": {
+    "zh": "深海女仆工坊：两位鲸鱼娘女仆、深海蓝蕾丝和宫殿大厅",
+    "en": "Abyssal Maid Atelier: two whale-girl maids, navy lace and a palace hall",
+    "ja": "深海メイド工房：二人のクジラ娘メイドと紺のレース"
+  },
+  "kind": "optional",
+  "description": {
+    "zh": "一个主题「深海女仆工坊」和它的配色方案（浅色是白天的宫殿、深色是夜里的宫殿），移植自 Small-tailqwq/dsh-deep-whale 的 maid-atelier。代码 MIT；美术照 CC BY-NC-SA 4.0，只能非商业使用，署名链：原作上善、女仆二设 ZipZipPipe、皮肤 Small-tailqwq（见包里的 NOTICE）。"
+  },
+  "text": {
+    "zh": {
+      "name": "深海女仆工坊",
+      "palette": "深海女仆工坊",
+      "title": "探索未至之境",
+      "brand": "深海女仆工坊",
+      "mascot": "Deepy（小鲸鱼）"
+    },
+    "en": {
+      "name": "Abyssal Maid Atelier",
+      "palette": "Abyssal Maid Atelier",
+      "title": "Explore the unreached",
+      "brand": "Maid Atelier",
+      "mascot": "Deepy"
+    },
+    "ja": {
+      "name": "深海メイド工房",
+      "palette": "深海メイド工房",
+      "title": "まだ見ぬ場所へ",
+      "brand": "深海メイド工房",
+      "mascot": "Deepy"
+    }
+  },
+  "inject": [
+    "slots",
+    "skin~"
+  ],
+  "styles": [
+    "style.css"
+  ]
+}

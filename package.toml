@@ -1,0 +1,11 @@
+# 外观包「大肥鱼」：网页的鲸鱼娘主题，照 Small-tailqwq/dsh-deep-whale 移植。美术照 CC BY-NC-SA 4.0，见 NOTICE。
+[package]
+version = "0.1.0"
+name = { en = "Deep whale", zh = "大肥鱼", ja = "クジラ娘" }
+summary = { en = "Whale-girl maids, navy lace and a palace hall", zh = "鲸鱼娘女仆、深海蓝蕾丝和宫殿大厅", ja = "クジラ娘のメイドと紺のレース" }
+author = "SHORiN-KiWATA"
+upstream = "https://github.com/Small-tailqwq/dsh-deep-whale"
+icon = "fish"
+
+[theme.web]
+dir = "web"
