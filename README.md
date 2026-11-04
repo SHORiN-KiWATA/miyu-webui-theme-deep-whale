@@ -1,8 +1,14 @@
-# miyu-webui-theme-deep-whale · 大肥鱼
+# miyu-webui-theme-deep-whale · 大肥鱼深海女仆工坊网页皮肤
 
 [Miyu](https://github.com/miyu-agent/miyu) 网页界面的外观包「深海女仆工坊」：鲸鱼娘女仆、深海蓝蕾丝、宫殿大厅（白天、夜里两张），输入框上有像素小鲸鱼 Deepy。
 
 移植自 Small-tailqwq 的 [dsh-deep-whale](https://github.com/Small-tailqwq/dsh-deep-whale) 里的 maid-atelier 皮肤。
+
+![首页](.github/screenshots/home-light.webp)
+
+| 对话 | 对话 · 夜里 |
+|---|---|
+| ![对话](.github/screenshots/chat-light.webp) | ![对话 · 夜里](.github/screenshots/chat-dark.webp) |
 
 ## 装
 
