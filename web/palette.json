@@ -46,7 +46,7 @@
     "tui": {
       "dim": "#8a857c",
       "accent": "#526aa8",
-      "full": "#b14a5c",
+      "full": "#405a99",
       "read_only": "#a0741f",
       "thought": "#2d6f7b",
       "thought_hover": "#1d5560",
@@ -144,7 +144,7 @@
     "tui": {
       "dim": "#7c84ad",
       "accent": "#9bb0e1",
-      "full": "#f7768e",
+      "full": "#b7c6e8",
       "read_only": "#e0af68",
       "thought": "#41a6b5",
       "thought_hover": "#6db3cb",
