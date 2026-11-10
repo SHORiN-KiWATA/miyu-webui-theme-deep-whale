@@ -107,9 +107,17 @@ export function character(spec) {
       quietSince = Date.now();
       if (base === 'sleeping') { base = 'idle'; show(sheet('waking') ? 'waking' : 'idle'); }
     });
-    // 站位：脚踩在那条边上，靠右
+    // 站位：脚踩在那条边上，靠右。网页把输入框上面露着的浮层都当成台面交过来，连「跳到底部」那颗小圆钮也算：它一露，吉祥物就被
+    // 顶到它头上。比自己的身子还窄、站不下的不算台面，照旧站在输入框上（输入框那条边照主题挪过多少，记着上一回量的）
+    const foot = gw * cell + (spec.right ?? 24);
+    let nudge = { dx: 0, dy: 0 };
     const offSurface = host.onSurface((/** @type {{top: number, left: number, right: number}|null} */ s) => {
       if (!s) { el.style.visibility = 'hidden'; return; }
+      const box = host.box?.() ?? null;
+      if (box) {
+        if (s.right - s.left < foot) s = { top: Math.round(box.top + nudge.dy), left: Math.round(box.left + nudge.dx), right: Math.round(box.right + nudge.dx) };
+        else if (Math.abs(s.top - box.top) <= 40 && Math.abs(s.right - s.left - box.width) < 2) nudge = { dx: s.right - box.right, dy: s.top - box.top };
+      }
       const x = Math.round(s.right - (spec.right ?? 24) - gw * cell);
       const y = Math.round(s.top - gh * cell);
       el.style.transform = `translate(${x}px, ${y}px)`;

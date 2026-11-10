@@ -15,8 +15,11 @@ maid-atelier（深海女仆工坊）。代码是重写的，照 MIT 许可（LIC
 3. 三创：Small-tailqwq —— dsh-deep-whale 的 maid-atelier 皮肤，本包用到的立绘、背景、边框装饰
    都出自这里。
 
-本包对美术的改动：改了文件名；左栏的角花（corner-*.webp）是从上游 maid-sidebar-corner-v1.webp 裁出右上角
-一块、缩小，再镜像出四个角（原版在页面里用 CSS 裁、镜像，这里预先做好）。别的图没有改。
+本包对美术的改动：改了文件名；左栏的角花（corner-bl.webp、corner-br.webp）是从上游 maid-sidebar-corner-v1.webp 裁出右上角
+一块、缩小，再镜像出下面两个角（原版在页面里用 CSS 裁、镜像，这里预先做好）。web/art/cut/ 下面的小图是把上游四张带花边的图
+预先裁开（原版在页面里用 CSS 的 border-image 切，Firefox 在整页放大时画不对，这里改成裁好了叠着画）：new-session-*（「新建会话」
+那张瓷牌，本包 0.1 版里的 new-session.webp）、plaque-*（maid-settings-frame-v1）、ribbon-*（maid-workspace-ribbon-v2）各裁成左头、中段、右头，
+frame-*（maid-composer-frame-shell-v1）裁成四角、四边；中段、四边是直的，横向或纵向压窄了。别的图没有改。
 
 另外：首页鲸鱼圆章里的像素小鲸鱼（web/art/emblem-whale.png）是 Deepy 的一帧，出自 calmly-eating-bugs（@wp3171216237）
 画的 Deepy 小鲸鱼，收在 MIT 许可的 dsh-TUI（https://github.com/wp3171216237/dsh-TUI）里，经 dsh-claude-style 带过来。

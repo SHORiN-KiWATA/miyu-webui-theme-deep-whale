@@ -9,11 +9,10 @@ import { mascot } from './deepy.js';
 const art = (/** @type {string} */ name) => `url("${new URL(`art/${name}`, import.meta.url).href}")`;
 
 export const tokens = {
-  // 对话区的底：宫殿大厅，上下压一层深海蓝（原版补丁的压暗层，浅深各一份）
-  // 顶上一条帷幔（海军蓝布、金线）、正中一个蝴蝶结（原版 css:465-512）
+  // 对话区的底：宫殿大厅，上下压一层深海蓝（原版补丁的压暗层，浅深各一份）。顶上的帷幔和蝴蝶结在 style.css（盖在正文上面一层）
   '--stage-bg': {
-    light: `${art('bow.webp')} center top 4px / 80px 42px no-repeat, ${art('top-trim-tile.webp')} left top / auto 51px repeat-x, linear-gradient(rgba(9, 19, 51, 0.12), rgba(9, 19, 51, 0.2)), ${art('palace-day.webp')} center bottom / cover no-repeat`,
-    dark: `${art('bow.webp')} center top 4px / 80px 42px no-repeat, ${art('top-trim-tile.webp')} left top / auto 51px repeat-x, linear-gradient(rgba(2, 6, 20, 0.32), rgba(2, 6, 20, 0.44)), ${art('palace-night.webp')} center bottom / cover no-repeat`,
+    light: `linear-gradient(rgba(9, 19, 51, 0.12), rgba(9, 19, 51, 0.2)), ${art('palace-day.webp')} center bottom / cover no-repeat`,
+    dark: `linear-gradient(rgba(2, 6, 20, 0.32), rgba(2, 6, 20, 0.44)), ${art('palace-night.webp')} center bottom / cover no-repeat`,
   },
   '--stage-fade': 'none',
   '--stage-fade-top': 'none',
@@ -107,8 +106,8 @@ export function apply(ctx) {
     const list = document.querySelector('.session-list');
     const side = list?.closest('.sidebar');
     const last = list?.lastElementChild?.getBoundingClientRect();
-    // 列表最后一行伸进了小人站的那一块（左栏底往上 300px）
-    const reach = !!(list && side && last && (list.scrollHeight > list.clientHeight || last.bottom > side.getBoundingClientRect().bottom - 300));
+    // 列表最后一行伸进了小人站的那一块（左栏底往上 330px：按钮的小铭牌、蕾丝垂饰、小人）
+    const reach = !!(list && side && last && (list.scrollHeight > list.clientHeight || last.bottom > side.getBoundingClientRect().bottom - 330));
     if (reach) root.dataset.maidBusy = '';
     else delete root.dataset.maidBusy;
   };

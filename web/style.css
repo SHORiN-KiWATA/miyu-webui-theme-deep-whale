@@ -1,132 +1,315 @@
 /* 「深海女仆工坊」的样子（照 dsh-deep-whale 的 maid-atelier，数值出处见各条）：只在根上 data-skin="maid" 时生效。
-   图都在 art/，照 CC BY-NC-SA 4.0（包里的 NOTICE）。 */
+   图都在 art/，照 CC BY-NC-SA 4.0（包里的 NOTICE）。
 
-/* ── 两位女仆：贴着对话区的底，左高 96%、右高 92%；进了对话缩到 64%、62%，退到内容后面（原版 css:250-460） ── */
-:root[data-skin="maid"] .stage { isolation: isolate; }
-:root[data-skin="maid"] .stage::before, :root[data-skin="maid"] .stage::after {
-  content: ""; position: absolute; z-index: 0; bottom: 0; pointer-events: none;
-  background: center bottom / contain no-repeat;
-  filter: drop-shadow(0 20px 24px rgba(27, 44, 91, 0.14));
-  transition: height 620ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 620ms ease, translate 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-:root[data-skin="maid"] .stage::before { left: clamp(8px, 1.5%, 24px); height: 64%; aspect-ratio: 1122 / 2019; background-image: url("art/left.webp"); opacity: 0.9; }
-:root[data-skin="maid"] .stage::after { right: clamp(8px, 1.5%, 24px); height: 62%; aspect-ratio: 1077 / 2048; background-image: url("art/right.webp"); opacity: 0.9; }
-:root[data-skin="maid"] .stage.is-empty::before { height: 96%; opacity: 1; }
-:root[data-skin="maid"] .stage.is-empty::after { height: 92%; opacity: 1; }
-/* 挤不下时只留右边那位，左边那位滑出去（index.js 量） */
-:root[data-skin="maid"][data-maid-crowd] .stage::before { translate: -100vw 0; }
-/* 深色：压暗一点、影子重一点 */
-@media (prefers-color-scheme: dark) { :root[data-skin="maid"]:not([data-theme="light"]) .stage::before, :root[data-skin="maid"]:not([data-theme="light"]) .stage::after { filter: brightness(0.84) saturate(0.92) drop-shadow(0 22px 28px rgba(0, 0, 0, 0.3)); } }
-:root[data-skin="maid"][style*="color-scheme: dark"] .stage::before, :root[data-skin="maid"][style*="color-scheme: dark"] .stage::after { filter: brightness(0.84) saturate(0.92) drop-shadow(0 22px 28px rgba(0, 0, 0, 0.3)); }
-/* 窄屏淡一点 */
-@media (max-width: 1080px) { :root[data-skin="maid"] .stage::before, :root[data-skin="maid"] .stage::after { opacity: 0.74; } }
-/* 对话区里的东西都站在女仆前面 */
-:root[data-skin="maid"] .stage > :not(.stage-float) { position: relative; z-index: 1; }
-:root[data-skin="maid"] .stage > .stage-info, :root[data-skin="maid"] .stage > .stage-tools { position: absolute; z-index: 14; }
+   带花边的几块（新建会话的瓷牌、深蓝铭牌、缎带、输入框的相框）都用预先裁好的小图（art/cut/）叠背景画：左头、右头各一张定宽，
+   中间一张拉伸。不用 border-image：Firefox 在整页放大（网页的 zoom 1.1）下把它的右半边画坏。
 
-/* ── 回答：半透明的瓷白卡片、金边，左下角收一点（原版 css:4488-4512 加补丁的透明度） ── */
-:root[data-skin="maid"] .assistant-content {
-  padding: 14px 18px; border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent); border-radius: 18px 18px 18px 7px;
-  background: color-mix(in srgb, var(--surface-1) 58%, transparent); backdrop-filter: blur(8px);
-}
-:root[data-skin="maid"] .user-bubble { box-shadow: var(--bubble-shadow); }
+   分块：一、底下垫的东西（配色留底、深蓝区的字色）  二、对话区（女仆、条幅、标题牌、右上角按钮、回答）
+        三、左栏  四、右栏  五、输入框  六、首页  七、设置页和别的页 */
 
-/* ── 左栏：深海蓝、金线框、四角花饰、底下 Q 版小人和蕾丝垂饰；字是奶油色（原版 css:694-1230） ── */
-:root[data-skin="maid"] .sidebar {
-  --text: #f8f3e8; --text-soft: #d7def0; --text-faint: #aab6d4; --line: rgba(226, 207, 170, 0.3); --sidebar-active: rgba(197, 164, 104, 0.26);
-  --item-hover: rgba(164, 183, 229, 0.14); --item-active: rgba(197, 164, 104, 0.26); --item-fg-active: #fff8e8;
-  color: var(--text);
-  background:
-    /* 下面两角的花饰（上面是名字那块铭牌，原版 Logo 行，不画角花） */
-    url("art/corner-bl.webp") left 4px bottom 4px / 62px 62px no-repeat,
-    url("art/corner-br.webp") right 4px bottom 4px / 62px 62px no-repeat,
-    /* 金线框：离边 8px，两头让出角花 */
-    linear-gradient(90deg, rgba(238, 210, 153, 0.94), rgba(190, 145, 75, 0.96), rgba(238, 210, 153, 0.94)) center bottom 8px / calc(100% - 140px) 1.35px no-repeat,
-    linear-gradient(rgba(238, 210, 153, 0.94), rgba(190, 145, 75, 0.96), rgba(238, 210, 153, 0.94)) left 8px top 82px / 1.25px calc(100% - 82px - 70px) no-repeat,
-    linear-gradient(rgba(238, 210, 153, 0.94), rgba(190, 145, 75, 0.96), rgba(238, 210, 153, 0.94)) right 8px top 82px / 1.25px calc(100% - 82px - 70px) no-repeat,
-    /* 底：上亮下深的海军蓝、细斜纹 */
+/* ══ 一、留底和深蓝区 ══ */
+
+/* 左栏、右栏是深海蓝的，里面的字换成奶油色（下面 --text 这几样）；浮在它们上面的菜单是瓷白的，要用回配色原来的字色：
+   先在根上留一份，菜单里照它写回去 */
+:root[data-skin="maid"] {
+  --maid-text: var(--text); --maid-text-soft: var(--text-soft); --maid-text-faint: var(--text-faint); --maid-line: var(--line);
+  --maid-cream: #f3e3c0; --maid-cream-hi: #fff8e8; --maid-gold: #d9bd83;
+  --maid-gold-line: linear-gradient(rgba(238, 210, 153, 0.94), rgba(190, 145, 75, 0.96), rgba(238, 210, 153, 0.94));
+  --maid-gold-line-h: linear-gradient(90deg, rgba(238, 210, 153, 0.94), rgba(190, 145, 75, 0.96), rgba(238, 210, 153, 0.94));
+  /* 深蓝的底：上亮下深的海军蓝、细斜纹（左栏、右栏共用） */
+  --maid-navy:
     radial-gradient(at 50% 14%, rgba(91, 119, 188, 0.23), transparent 60%),
     repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.026) 0 1px, transparent 1px 7px),
     linear-gradient(180deg, rgba(16, 36, 86, 0.97), rgba(5, 14, 43, 0.96)),
     #0a173b;
+  --maid-serif: Georgia, "Times New Roman", var(--serif);
+}
+:root[data-skin="maid"] :is(.sidebar, .set-side) {
+  --text: #f8f3e8; --text-soft: #d7def0; --text-faint: #aab6d4; --line: rgba(226, 207, 170, 0.3); --sidebar-active: rgba(197, 164, 104, 0.26);
+  --item-hover: rgba(164, 183, 229, 0.14); --item-active: rgba(197, 164, 104, 0.26); --item-fg-active: #fff8e8;
+  --ghost-hover: rgba(164, 183, 229, 0.18); --ghost-fg-hover: #fff8e8;
+  color: var(--text);
+}
+/* 深蓝区里弹出来的菜单、拖着的会话卡片：瓷白底，字用回配色的 */
+:root[data-skin="maid"] :is(.sidebar, .set-side) :is(.session-menu, .dock-float, .setup-menu, .model-menu), :root[data-skin="maid"] .session-ghost {
+  --text: var(--maid-text); --text-soft: var(--maid-text-soft); --text-faint: var(--maid-text-faint); --line: var(--maid-line);
+  --item-hover: initial; --item-active: initial; --item-fg-active: initial; --ghost-hover: initial; --ghost-fg-hover: initial;
+  color: var(--maid-text); font-family: var(--font-ui);
+}
+
+/* ══ 二、对话区 ══ */
+
+/* 两位女仆：贴着对话区的底，左高 96%、右高 92%；进了对话缩到 64%、62%，退到内容后面（原版 css:250-460）。
+   都画在对话区自己的底图里（一层一样东西），不另起一层：对话区不围成单独的一层，里面弹出来的菜单才能照常盖住左右两栏和吉祥物。
+   从上到下：首页底边的纹章、花纹（进了对话沉到底边下面）、压暗的一层（深色、窄屏用）、左边那位、右边那位、宫殿（index.js 的 --stage-bg） */
+:root[data-skin="maid"] .stage {
+  background:
+    url("art/bottom-crest.webp") center bottom var(--maid-crest-y, -64px) / 94px 54px no-repeat,
+    url("art/bottom-trim-tile.webp") left bottom var(--maid-trim-y, -34px) / auto 30px repeat-x,
+    linear-gradient(var(--maid-dim, transparent), var(--maid-dim, transparent)),
+    url("art/left.webp") left var(--maid-left-x, 16px) bottom / auto var(--maid-left-h, 64%) no-repeat,
+    url("art/right.webp") right 16px bottom / auto var(--maid-right-h, 62%) no-repeat,
+    var(--stage-bg);
+  transition: background-size 620ms cubic-bezier(0.2, 0.8, 0.2, 1), background-position 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+:root[data-skin="maid"] .stage.is-empty { --maid-left-h: 96%; --maid-right-h: 92%; --maid-crest-y: 6px; --maid-trim-y: 0px; }
+/* 挤不下时只留右边那位，左边那位滑出去（index.js 量） */
+:root[data-skin="maid"][data-maid-crowd] .stage { --maid-left-x: -70vw; }
+/* 进了对话两位退到后面：罩一层很淡的底色；深色再压暗一点；窄屏更淡 */
+:root[data-skin="maid"] .stage:not(.is-empty) { --maid-dim: color-mix(in srgb, var(--surface) 12%, transparent); }
+:root[data-skin="maid"][style*="color-scheme: dark"] .stage { --maid-dim: rgba(2, 6, 20, 0.16); }
+:root[data-skin="maid"][style*="color-scheme: dark"] .stage:not(.is-empty) { --maid-dim: rgba(2, 6, 20, 0.3); }
+@media (max-width: 1080px) { :root[data-skin="maid"] .stage, :root[data-skin="maid"][style*="color-scheme: dark"] .stage { --maid-dim: color-mix(in srgb, var(--surface) 34%, transparent); } }
+@media (prefers-reduced-motion: reduce) { :root[data-skin="maid"] .stage { transition: none; } }
+
+/* 顶上的帷幔（海军蓝布、金线、蕾丝）和正中的蝴蝶结（原版 css:465-512）：盖在正文上面一层，正文滚上来从帷幔后面过，不压在它上面 */
+:root[data-skin="maid"] .stage::after {
+  content: ""; position: absolute; z-index: 13; top: 0; right: 0; left: 0; height: 84px; pointer-events: none;
+  background: url("art/bow.webp") center top 4px / 80px 42px no-repeat, url("art/top-trim-tile.webp") left top / auto 51px repeat-x,
+    /* 帷幔投下来的一层影：蕾丝是镂空的，垫着它正文滚到蕾丝后面就看不见了，不会从镂空里透出字来 */
+    linear-gradient(rgba(10, 23, 59, 0.96) 0 24px, rgba(13, 28, 70, 0.82) 40px, rgba(16, 33, 80, 0.4) 58px, transparent);
+}
+/* 正文从帷幔下面起 */
+:root[data-skin="maid"] .stage .timeline, :root[data-skin="maid"] .stage.has-info .timeline { padding-top: 84px; }
+:root[data-skin="maid"] .sessions-page { padding-top: 84px; }
+
+/* 左上角的会话标题：钉在帷幔上的一块深蓝铭牌（细金边、两头缺角），字是奶油色 */
+:root[data-skin="maid"] .stage-info .setup-info {
+  height: 30px; padding: 0 19px; border: 0; border-radius: 0;
+  background: url("art/cut/plaque-l.webp") left / 17px 100% no-repeat, url("art/cut/plaque-r.webp") right / 17px 100% no-repeat,
+    url("art/cut/plaque-m.webp") center / calc(100% - 33px) 100% no-repeat;
+  box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; filter: drop-shadow(0 2px 5px rgba(4, 10, 32, 0.45));
+  color: #c9b98f; font-family: var(--maid-serif); font-size: calc(12.5px * var(--text-scale)); letter-spacing: 0.03em;
+}
+:root[data-skin="maid"] .stage-info :is(.setup-info-part, .setup-info-part.is-title, .setup-info-part.is-project) { color: var(--maid-cream); }
+:root[data-skin="maid"] .stage-info :is(.setup-info-part.is-title, .setup-info-part.is-project):hover { color: var(--maid-cream-hi); }
+:root[data-skin="maid"] .stage-info .setup-info-part.is-title.is-new { color: #c9b98f; }
+:root[data-skin="maid"] .stage-info .setup-info-slash { color: var(--maid-gold); opacity: 0.8; }
+:root[data-skin="maid"] .stage-info .setup-back { color: var(--maid-cream); border-radius: 50%; background: rgba(10, 23, 59, 0.9); box-shadow: 0 0 0 1px var(--maid-gold), 0 2px 6px rgba(0, 0, 0, 0.35); }
+/* 左栏收起时左上角是蝴蝶结那枚圆章（比原来的按钮大一圈），标题牌往右让一点 */
+:root[data-skin="maid"] .app-shell.is-sidebar-collapsed .stage-info { top: 22px; left: 70px; }
+
+/* 右上角的按钮（右栏、预览工作区的开关）压在帷幔上：深蓝的小圆、金边、奶油色的图标 */
+:root[data-skin="maid"] .stage-tools .icon-button, :root[data-skin="maid"] .stage-float .icon-button {
+  border-radius: 50%; background: rgba(10, 23, 59, 0.9); box-shadow: 0 0 0 1px var(--maid-gold), 0 2px 6px rgba(0, 0, 0, 0.35); color: var(--maid-cream);
+}
+:root[data-skin="maid"] .stage-tools .icon-button:hover, :root[data-skin="maid"] .stage-float .icon-button:hover { background: rgba(28, 48, 104, 0.96); color: var(--maid-cream-hi); }
+:root[data-skin="maid"] .dash-badge.is-waiting, :root[data-skin="maid"] .dash-badge.is-new { box-shadow: 0 0 0 2px #0a173b; }
+
+/* 回答：半透明的瓷白卡片、金边，左下角收一点（原版 css:4488-4512 加补丁的透明度） */
+:root[data-skin="maid"] .assistant-content {
+  padding: 14px 18px; border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent); border-radius: 18px 18px 18px 7px;
+  background: color-mix(in srgb, var(--surface-1) 58%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+:root[data-skin="maid"] .user-bubble { box-shadow: var(--bubble-shadow); }
+/* 右边那一列跳转条落在背景图上：垫一条半透明的瓷白才看得见 */
+:root[data-skin="maid"] .prompt-rail .rail-lines { padding: 6px 4px; border-radius: 999px; background: color-mix(in srgb, var(--surface-1) 62%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* ══ 三、左栏 ══ */
+
+/* 深海蓝、金线框：顶上是名字那块铭牌，两边的金线从铭牌的两个下角接下去，一直连到底下两角的花饰（原版 css:694-1230） */
+:root[data-skin="maid"] .sidebar {
+  background:
+    /* 下面两角的花饰 */
+    url("art/corner-bl.webp") left 4px bottom 4px / 62px 62px no-repeat,
+    url("art/corner-br.webp") right 4px bottom 4px / 62px 62px no-repeat,
+    /* 金线框：离边 8px；竖线上头藏在铭牌后面，下头让出角花；底下一条横线 */
+    var(--maid-gold-line-h) center bottom 8px / calc(100% - 128px) 1.35px no-repeat,
+    var(--maid-gold-line) left 8px top 40px / 1.25px calc(100% - 40px - 64px) no-repeat,
+    var(--maid-gold-line) right 8px top 40px / 1.25px calc(100% - 40px - 64px) no-repeat,
+    var(--maid-navy);
   box-shadow: inset -1px 0 0 rgba(255, 245, 215, 0.82), inset -3px 0 0 rgba(226, 207, 166, 0.5);
 }
-:root[data-skin="maid"] .sidebar .brand-identity strong { color: #f3e3c0; font-family: Georgia, "Times New Roman", var(--serif); }
-:root[data-skin="maid"] .sidebar .session-item, :root[data-skin="maid"] .sidebar .sidebar-nav-row { font-family: Georgia, "Times New Roman", var(--serif); }
-:root[data-skin="maid"] .sidebar .session-item { color: #d7c8a8; }
-:root[data-skin="maid"] .sidebar .session-item.is-active { color: #fff8e8; }
-/* 「新建会话」：奶油色的瓷牌（图片边框，原版 css:977） */
-:root[data-skin="maid"] .sidebar .sidebar-nav-row:first-of-type {
-  min-height: 46px; margin: 6px 4px 8px; justify-content: center; border: 0 solid transparent; border-width: 0 34px;
-  border-image: url("art/new-session.webp") 0 210 0 210 fill / 0 34px stretch; background: none;
-  color: #152246; font-weight: 600; font-size: 15px;
-}
-:root[data-skin="maid"] .sidebar .sidebar-nav-row:first-of-type:hover { filter: brightness(1.06); translate: 0 -1px; background: none; }
-:root[data-skin="maid"] .sidebar .sidebar-nav-row:first-of-type .icon { color: #152246; }
 
-/* ── 输入框：蕾丝相框（九宫格）、顶上正中蝴蝶结、两边丝带、一条蕾丝花边，底是半透明的瓷白（原版 css:3358-3860） ── */
+/* 名字那一行做成金线框的头：深蓝渐变、细金边，上面两个圆角、下面平着接金线框（原版 Logo 行 css:854） */
+:root[data-skin="maid"] .brand-row {
+  min-height: 60px; margin: 8px 8px 0; padding-left: 12px; border: 1px solid rgba(226, 207, 170, 0.78); border-radius: 10px 10px 0 0;
+  background: linear-gradient(rgba(18, 40, 92, 0.98), rgba(7, 18, 54, 0.98)); box-shadow: inset 0 0 0 3px rgba(10, 23, 59, 0.9), inset 0 0 0 4px rgba(226, 207, 170, 0.28);
+}
+:root[data-skin="maid"] .brand-toggle-slot { flex-basis: 40px; }
+/* 名字换成「深海女仆工坊」（index.js 照界面语言写进 --maid-brand），不画人格的头像 */
+:root[data-skin="maid"] .brand-identity .brand-face { display: none; }
+:root[data-skin="maid"] .brand-identity strong { font-size: 0; letter-spacing: 0; }
+:root[data-skin="maid"] .brand-identity strong::before {
+  content: var(--maid-brand, "深海女仆工坊"); color: var(--maid-cream); font: 600 17px/1.2 var(--maid-serif); letter-spacing: 0.08em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+}
+:root[data-skin="maid"] .brand-identity > div > span { color: var(--maid-gold); }
+/* 在线的点换成一颗深海蓝宝石、金边（原版标进行中的那颗）；连接中金色，断了变灰 */
+:root[data-skin="maid"] .status-dot {
+  width: 8px; height: 8px; flex-basis: 8px; margin: 0 2px; border-radius: 1.5px; rotate: 45deg;
+  background: radial-gradient(circle at 35% 30%, #d6e3ff, #5b80e6 45%, #1d3a8f 80%);
+  box-shadow: 0 0 0 1px #d9bd83, 0 0 6px rgba(120, 160, 255, 0.55);
+}
+:root[data-skin="maid"] .status-dot.is-connecting { background: radial-gradient(circle at 35% 30%, #fff3d0, #e2c27a 50%, #9c7634 85%); box-shadow: 0 0 0 1px #f3e3c0, 0 0 6px rgba(226, 194, 122, 0.6); }
+:root[data-skin="maid"] .status-dot.is-offline { filter: grayscale(1) brightness(0.7); box-shadow: 0 0 0 1px #8f8571; }
+
+/* 收起、展开左栏的按钮：一枚瓷白的圆章、双金圈，里面是那只深蓝缎带的蝴蝶结。展开时它是铭牌左头的徽记，收起时别在帷幔上 */
+:root[data-skin="maid"] .sidebar-toggle {
+  top: 21px; left: 21px; width: 36px; height: 36px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 28%, #fffdf7, #f4ead6 62%, #dfcba2);
+  box-shadow: 0 0 0 1px #b88f4a, 0 0 0 3px #0c1c48, 0 0 0 4px rgba(226, 207, 170, 0.8), 0 3px 8px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 160ms ease;
+}
+:root[data-skin="maid"] .sidebar-toggle > svg { visibility: hidden; }
+:root[data-skin="maid"] .sidebar-toggle::before {
+  content: ""; position: absolute; inset: 7px 3px; background: url("art/bow.webp") center / contain no-repeat;
+  filter: drop-shadow(0 1px 1px rgba(10, 23, 59, 0.35)); transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+:root[data-skin="maid"] .sidebar-toggle:hover { background: radial-gradient(circle at 36% 28%, #ffffff, #f9f1df 62%, #e6d3ab); box-shadow: 0 0 0 1px #c9a25c, 0 0 0 3px #0c1c48, 0 0 0 4px #eed299, 0 3px 10px rgba(0, 0, 0, 0.45); }
+:root[data-skin="maid"] .sidebar-toggle:hover::before { transform: rotate(-8deg) scale(1.1); }
+:root[data-skin="maid"] .sidebar-toggle:active::before { transform: scale(0.94); }
+
+/* 金线框里面的东西离框 6px */
+:root[data-skin="maid"] .sidebar-nav { padding: 0 14px 6px; }
+:root[data-skin="maid"] .session-list { padding-right: 14px; padding-left: 14px; }
+:root[data-skin="maid"] .sidebar :is(.session-item, .sidebar-nav-row, .session-group-header, .session-all, .session-done, .project-empty) { font-family: var(--maid-serif); }
+:root[data-skin="maid"] .sidebar .session-item-main { color: #e4d7b8; }
+:root[data-skin="maid"] .sidebar .session-item.is-active .session-item-main { color: var(--maid-cream-hi); }
+:root[data-skin="maid"] .sidebar .session-group-header { color: var(--maid-gold); letter-spacing: 0.12em; }
+:root[data-skin="maid"] .sidebar .session-run-spinner { color: #eed299; }
+/* 「新建会话」：奶油色的瓷牌（图片边框，原版 css:977） */
+:root[data-skin="maid"] .sidebar .sidebar-nav > .sidebar-nav-row:first-child {
+  min-height: 46px; margin: 12px 2px 8px; padding: 0 34px; justify-content: center; border: 0;
+  background: url("art/cut/new-session-l.webp") left / 34px 100% no-repeat, url("art/cut/new-session-r.webp") right / 34px 100% no-repeat,
+    url("art/cut/new-session-m.webp") center / calc(100% - 67px) 100% no-repeat;
+  box-shadow: none;
+  color: #152246; font-weight: 600; font-size: 15px; letter-spacing: 0.06em; transition: filter 160ms ease, translate 160ms ease;
+}
+:root[data-skin="maid"] .sidebar .sidebar-nav > .sidebar-nav-row:first-child:hover { filter: brightness(1.06); translate: 0 -1px; }
+:root[data-skin="maid"] .sidebar .sidebar-nav > .sidebar-nav-row:first-child .icon { color: #152246; }
+:root[data-skin="maid"] .sidebar .sidebar-nav-row .icon { color: var(--maid-gold); }
+:root[data-skin="maid"] .sidebar .sidebar-nav-row.is-on { box-shadow: inset 0 0 0 1px rgba(226, 207, 170, 0.4); }
+
+/* 当前会话：一条深蓝缎带、金边，右头燕尾（原版用在当前工作区那一行，css:2862）。画在会话表里滑动的那一块上，换会话时缎带跟着滑过去 */
+:root[data-skin="maid"] .sidebar .session-pill {
+  border: 0; border-radius: 0;
+  background: url("art/cut/ribbon-l.webp") left / 14px 100% no-repeat, url("art/cut/ribbon-r.webp") right / 26px 100% no-repeat,
+    url("art/cut/ribbon-m.webp") left 13.5px top / calc(100% - 39px) 100% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 2px 4px rgba(2, 8, 28, 0.5));
+}
+/* 改名的框：深蓝底、金边 */
+:root[data-skin="maid"] .sidebar .session-rename { background: rgba(6, 14, 42, 0.92); box-shadow: 0 0 0 1px var(--maid-gold); color: var(--maid-cream-hi); }
+:root[data-skin="maid"] .sidebar .session-item.is-selected { background: rgba(197, 164, 104, 0.2); }
+:root[data-skin="maid"] .sidebar .session-drop-hint { border-color: rgba(226, 207, 170, 0.5); }
+
+/* 左栏底下：Q 版小人站在蕾丝垂饰上，垂饰下面一块深蓝的小铭牌放设置、明暗这几个按钮（原版底下的「设置」牌）。
+   会话多、列表长到底下时小人淡下去，免得挡字（index.js 量，data-maid-busy） */
+:root[data-skin="maid"] .sidebar::after {
+  /* 垫在左栏里的东西底下（左栏自己是一层，-1 还在它的底色上面） */
+  content: ""; position: absolute; z-index: -1; inset: auto 0 0; height: 360px; pointer-events: none;
+  background: url("art/chibi.webp") 50% calc(100% - 118px) / min(214px, 76%) auto no-repeat, url("art/sidebar-swag.webp") center bottom 58px / calc(100% - 22px) auto no-repeat;
+  transition: opacity 300ms ease;
+}
+:root[data-skin="maid"][data-maid-busy] .sidebar::after { opacity: 0.3; }
+:root[data-skin="maid"] .sidebar-footer { display: grid; justify-items: center; padding: 0 70px 17px; }
+:root[data-skin="maid"] .sidebar-actions {
+  justify-content: center; box-sizing: border-box; min-width: 112px; max-width: 100%; height: 38px; margin: 0; padding: 0 18px; gap: 4px;
+  background: url("art/cut/plaque-l.webp") left / 18px 100% no-repeat, url("art/cut/plaque-r.webp") right / 18px 100% no-repeat,
+    url("art/cut/plaque-m.webp") center / calc(100% - 35px) 100% no-repeat;
+}
+:root[data-skin="maid"] .sidebar-actions :is(.icon-button, button) { color: var(--maid-cream); }
+:root[data-skin="maid"] .sidebar-actions .icon-button { width: 30px; height: 30px; }
+:root[data-skin="maid"] .sidebar-actions :is(.icon-button, button):hover { background: rgba(164, 183, 229, 0.18); color: var(--maid-cream-hi); }
+
+/* ══ 四、右栏（待办、后台任务、文件修改、展示文件）：和左栏一对，深海蓝、金线框、四角花饰，卡片是瓷白的、金边 ══ */
+:root[data-skin="maid"] .side-column:not(.is-overlay) {
+  background:
+    url("art/corner-bl.webp") left 4px bottom 4px / 62px 62px no-repeat,
+    url("art/corner-br.webp") right 4px bottom 4px / 62px 62px no-repeat,
+    /* 金线框：上面两角直接接上（卡片从顶上排起，不画角花），下面让出角花 */
+    var(--maid-gold-line-h) left 8px top 8px / calc(100% - 16px) 1.35px no-repeat,
+    var(--maid-gold-line-h) center bottom 8px / calc(100% - 128px) 1.35px no-repeat,
+    var(--maid-gold-line) left 8px top 8px / 1.25px calc(100% - 8px - 64px) no-repeat,
+    var(--maid-gold-line) right 8px top 8px / 1.25px calc(100% - 8px - 64px) no-repeat,
+    var(--maid-navy);
+  box-shadow: inset 1px 0 0 rgba(255, 245, 215, 0.82), inset 3px 0 0 rgba(226, 207, 166, 0.5);
+}
+:root[data-skin="maid"] .side-column:not(.is-overlay) .dash-list { padding: 20px 14px 14px; }
+:root[data-skin="maid"] .side-column.is-overlay { border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); }
+:root[data-skin="maid"] .dash { --dash-edge: color-mix(in srgb, var(--gold) 62%, transparent); }
+:root[data-skin="maid"] .dash-card, :root[data-skin="maid"] .dash-empty {
+  border-radius: 12px 12px 12px 5px; box-shadow: inset 0 0 0 3px var(--surface-1), inset 0 0 0 4px color-mix(in srgb, var(--gold) 26%, transparent), 0 8px 20px rgba(2, 8, 28, 0.32);
+}
+:root[data-skin="maid"] .dash-title { color: var(--on-primary-container); font-family: var(--maid-serif); font-size: calc(13.5px * var(--text-scale)); letter-spacing: 0.06em; }
+/* 卡片名字前面一颗小金菱 */
+:root[data-skin="maid"] .dash-title::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; rotate: 45deg; translate: 0 -1px; background: linear-gradient(135deg, #eed299, #b88f4a); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent); }
+:root[data-skin="maid"] .dash-progress-bar { background: linear-gradient(90deg, #6079b5, #294587); }
+/* 预览工作区（第三列）左边一道金线，和左栏的右边一样 */
+:root[data-skin="maid"] .artifact-workspace:not(.is-overlay) { box-shadow: inset 1px 0 0 rgba(255, 245, 215, 0.82), inset 3px 0 0 rgba(226, 207, 166, 0.5); }
+
+/* ══ 五、输入框：蕾丝相框（九宫格）、顶上正中蝴蝶结、两边丝带、一条蕾丝花边，底是半透明的瓷白（原版 css:3358-3860） ══ */
 :root[data-skin="maid"] .composer {
-  isolation: isolate; padding-top: 34px; border: 0; border-radius: 30px;
+  padding-top: 34px; border: 0; border-radius: 30px;
   --composer-pad-top: 10px;
   background: linear-gradient(color-mix(in srgb, var(--surface-1) 92%, transparent), color-mix(in srgb, var(--surface-2) 85%, transparent));
   box-shadow: 0 18px 40px -16px rgba(15, 30, 72, 0.35);
 }
-:root[data-skin="maid"] .stage.is-empty .composer { background: linear-gradient(color-mix(in srgb, var(--surface-1) 62%, transparent), color-mix(in srgb, var(--surface-2) 50%, transparent)); backdrop-filter: blur(2.5px) saturate(0.94); }
+:root[data-skin="maid"] .stage.is-empty .composer { background: linear-gradient(color-mix(in srgb, var(--surface-1) 62%, transparent), color-mix(in srgb, var(--surface-2) 50%, transparent)); -webkit-backdrop-filter: blur(2.5px) saturate(0.94); backdrop-filter: blur(2.5px) saturate(0.94); }
 :root[data-skin="maid"] .composer::before {
-  content: ""; position: absolute; z-index: -1; inset: -20px -14px -18px; pointer-events: none;
-  border: 0 solid transparent; border-width: 72px 54px 52px 54px;
-  border-image: url("art/composer-frame-shell.webp") 170 120 115 120 / 72px 54px 52px 54px stretch;
+  /* 不写 z-index、不把框围成单独的一层：框上面弹出的列表才不会被正文里带层级的东西（代码块的头）盖住。相框只画一圈边，中间是空的 */
+  content: ""; position: absolute; inset: -20px -14px -18px; pointer-events: none;
   background:
+    /* 相框：四角定大小，四边拉伸（上 72、两边 54、下 52） */
+    url("art/cut/frame-tl.webp") left top / 54px 72px no-repeat,
+    url("art/cut/frame-tr.webp") right top / 54px 72px no-repeat,
+    url("art/cut/frame-bl.webp") left bottom / 54px 52px no-repeat,
+    url("art/cut/frame-br.webp") right bottom / 54px 52px no-repeat,
+    url("art/cut/frame-t.webp") left 53.5px top / calc(100% - 107px) 72px no-repeat,
+    url("art/cut/frame-b.webp") left 53.5px bottom / calc(100% - 107px) 52px no-repeat,
+    url("art/cut/frame-l.webp") left top 71.5px / 54px calc(100% - 123px) no-repeat,
+    url("art/cut/frame-r.webp") right top 71.5px / 54px calc(100% - 123px) no-repeat,
+    /* 相框底下：蝴蝶结、两边丝带、蕾丝花边 */
     url("art/bow.webp") center top -12px / auto 69px no-repeat,
     url("art/composer-ribbon-left-cap.webp") left 53px top 6px / 102px 32px no-repeat,
     url("art/composer-ribbon-right-cap.webp") right 53px top 6px / 102px 32px no-repeat,
     url("art/composer-ribbon-left-fill.webp") left 154px top 6px / calc(50% - 184px) 32px no-repeat,
     url("art/composer-ribbon-right-fill.webp") right 154px top 6px / calc(50% - 184px) 32px no-repeat,
     url("art/composer-lace-tile.png") left 53px top 24px / 54px 33px repeat-x;
-  background-origin: border-box; background-clip: border-box;
-  -webkit-mask: linear-gradient(#000 0 0) top / 100% 100% no-repeat;
 }
+/* 框上面那一排（人格、预设、工作区的按钮，在跑时的那一行）让出丝带和蝴蝶结 */
+:root[data-skin="maid"] .dock-above { margin-bottom: 18px; }
+:root[data-skin="maid"] .setup-row { margin-bottom: 14px; }
+/* 首页那三颗（人格、预设、工作区）排在正中：上面是居中的标题，下面是蝴蝶结，原来靠左、悬在丝带上头，和谁都不对齐 */
+:root[data-skin="maid"] .stage.is-empty .setup-row { justify-content: center; margin-bottom: 20px; }
+:root[data-skin="maid"] .setup-btn { border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent); background: color-mix(in srgb, var(--surface-1) 86%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+:root[data-skin="maid"] .setup-btn:hover { background: var(--surface-1); }
 /* 发送：深蓝渐变的小圆、金边（变量给了底和边） */
 :root[data-skin="maid"] .composer-send { width: 36px; height: 36px; }
+/* 语音（网页的软件包 voice，装了语音包才有）。麦克风在发送左边：一颗瓷白的小圆、细金边，和发送成一对；
+   正在听时换成发送那样的深蓝底，四根音量条是奶油色的，外面一圈金光慢慢呼吸；在认字时金色的圈转 */
+:root[data-skin="maid"] .composer .voice-mic {
+  width: 36px; height: 36px; border-radius: 50%; background: color-mix(in srgb, var(--surface-1) 82%, transparent); color: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 62%, transparent); transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+:root[data-skin="maid"] .composer .voice-mic:hover { background: var(--surface-1); color: var(--on-primary-container); box-shadow: inset 0 0 0 1px var(--gold); }
+:root[data-skin="maid"] .composer .voice-mic.is-recording {
+  border-radius: 50%; background: linear-gradient(145deg, #6079b5, #294587); color: var(--maid-cream-hi);
+  box-shadow: inset 0 0 0 1px #d8bd82, 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent); animation: maid-listen 1.6s ease-in-out infinite;
+}
+:root[data-skin="maid"] .composer .voice-mic.is-busy { color: var(--gold); }
+@keyframes maid-listen { 50% { box-shadow: inset 0 0 0 1px #d8bd82, 0 0 0 6px color-mix(in srgb, var(--gold) 12%, transparent); } }
+@media (prefers-reduced-motion: reduce) { :root[data-skin="maid"] .composer .voice-mic.is-recording { animation: none; } }
+/* 右上角的自动朗读：开着时那颗小圆换成金底、深蓝的图标（别的右上角按钮是深蓝底、奶油色图标） */
+:root[data-skin="maid"] .stage-tools .voice-auto.is-on, :root[data-skin="maid"] .stage-tools .voice-auto.is-on:hover {
+  background: linear-gradient(145deg, #f3e3c0, #d3b477); box-shadow: 0 0 0 1px #fff8e8, 0 2px 6px rgba(0, 0, 0, 0.35); color: #10204d;
+}
+/* 收尾那一行的朗读：念着时一颗小金底 */
+:root[data-skin="maid"] .voice-speak.is-playing { background: color-mix(in srgb, var(--gold) 26%, transparent); color: var(--on-primary-container); }
+
+/* 跳到底部：挪到框的正中、蝴蝶结上面（原来在右上角，把站在那儿的吉祥物顶上去） */
+:root[data-skin="maid"] .composer-jump { right: auto; bottom: calc(100% + 40px); left: calc(50% - 16px); border-radius: 50%; }
 /* 框下面那一行落在背景图上：垫一条半透明的瓷白，字才看得清 */
-:root[data-skin="maid"] .composer-footer { margin-top: 22px; padding: 2px 14px; border-radius: 999px; background: color-mix(in srgb, var(--surface-1) 78%, transparent); backdrop-filter: blur(6px); }
-/* 首页那一列收窄（原版 clamp(560px, 41vw, 740px)），两位女仆在两边 */
-:root[data-skin="maid"] .stage.is-empty .composer-dock, :root[data-skin="maid"] .stage.is-empty .stage-home { width: clamp(560px, 41vw, 740px); }
+/* 不加磨砂：磨砂会把这一行围成单独的一层，从它弹出来的换模型菜单、用量明细就盖不住吉祥物和右栏了 */
+:root[data-skin="maid"] .composer-footer { margin-top: 22px; padding: 2px 14px; border-radius: 999px; background: color-mix(in srgb, var(--surface-1) 86%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent); }
 
-/* 左栏底下那一排按钮在垂饰上面，垫一层深蓝才看得见 */
-:root[data-skin="maid"] .sidebar-footer { position: relative; z-index: 1; padding-bottom: 96px; }
-:root[data-skin="maid"] .sidebar-actions .icon-button, :root[data-skin="maid"] .sidebar-actions button { color: #f2dfba; }
+/* ══ 六、首页 ══ */
 
-/* 名字那一行做成一块铭牌：深蓝渐变、细金边、小圆角，收起左栏的按钮和名字都在里面（原版 Logo 行 css:854） */
-:root[data-skin="maid"] .brand-row {
-  min-height: 58px; margin: 8px 8px 6px; border: 1px solid rgba(226, 207, 170, 0.72); border-radius: 8px;
-  background: linear-gradient(rgba(18, 40, 92, 0.98), rgba(7, 18, 54, 0.98)); box-shadow: inset 0 0 0 3px rgba(10, 23, 59, 0.9), inset 0 0 0 4px rgba(226, 207, 170, 0.28);
-}
-:root[data-skin="maid"] .sidebar-toggle { color: #f3e3c0; }
-
-/* Q 版小人站在蕾丝垂饰上，贴左栏的底；会话多、列表长到底下时淡下去，免得挡字（index.js 量，data-maid-busy） */
-:root[data-skin="maid"] .sidebar::after {
-  content: ""; position: absolute; z-index: 0; inset: auto 0 0; height: 340px; pointer-events: none;
-  background: url("art/chibi.webp") 52% calc(100% - 94px) / min(240px, 82%) auto no-repeat, url("art/sidebar-swag.webp") center bottom 2px / 100% auto no-repeat;
-  transition: opacity 300ms ease;
-}
-:root[data-skin="maid"][data-maid-busy] .sidebar::after { opacity: 0.28; }
-:root[data-skin="maid"] .sidebar > * { position: relative; z-index: 1; }
-
-/* 当前会话：一条深蓝缎带、金边，右头燕尾（原版用在当前工作区那一行，css:2862） */
-:root[data-skin="maid"] .sidebar .session-item.is-active {
-  border: 0 solid transparent; border-width: 0 26px 0 14px;
-  border-image: url("art/workspace-ribbon.webp") 0 145 0 140 fill / 0 26px 0 14px stretch; background: none;
-  animation: maid-ribbon-in 440ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-:root[data-skin="maid"] .sidebar .session-item.is-active .session-item-main { padding-left: 0; }
-@keyframes maid-ribbon-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-
-/* 首页：对话区底边一条花纹、正中一枚纹章（原版 css:529、563） */
-:root[data-skin="maid"] .stage.is-empty {
-  background: url("art/bottom-crest.webp") center bottom 6px / 94px 54px no-repeat, url("art/bottom-trim-tile.webp") left bottom / auto 30px repeat-x, var(--stage-bg);
-}
-/* 首页的标题在输入框上面（标题块挂在 stage.home，原本排在框下面） */
+/* 那一列收窄（原版 clamp(560px, 41vw, 740px)），两位女仆在两边 */
+:root[data-skin="maid"] .stage.is-empty .composer-dock, :root[data-skin="maid"] .stage.is-empty .stage-home { width: clamp(560px, 41vw, 740px); max-width: 100%; }
+/* 对话区底边一条花纹、正中一枚纹章（原版 css:529、563）：在对话区的底图里（上面「两位女仆」那一条） */
+/* 标题在输入框上面（标题块挂在 stage.home，原本排在框下面） */
 :root[data-skin="maid"] .stage.is-empty .stage-home { order: 1; }
 :root[data-skin="maid"] .stage.is-empty .composer-dock { order: 2; }
 .maid-title { display: none; }
@@ -146,43 +329,13 @@
 :root[data-skin="maid"][style*="color-scheme: dark"] .maid-heading { color: #fffaf0; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
 :root[data-skin="maid"][style*="color-scheme: dark"] .maid-emblem { background: rgba(27, 44, 84, 0.72); box-shadow: 0 0 0 8px rgba(27, 44, 84, 0.3); }
 
-/* 右上角的按钮压在帷幔上：奶油色才看得见 */
-:root[data-skin="maid"] .stage-tools .icon-button, :root[data-skin="maid"] .stage-tools button { color: #f3e3c0; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
+/* ══ 七、设置页和别的 ══ */
 
-/* 设置页左边那一列用的是左栏的底色（深海蓝）：字照左栏换成奶油色 */
-:root[data-skin="maid"] .set-side {
-  --text: #f8f3e8; --text-soft: #d7def0; --text-faint: #aab6d4; --sidebar-active: rgba(197, 164, 104, 0.26);
-  --item-hover: rgba(164, 183, 229, 0.14); --item-active: rgba(197, 164, 104, 0.26); --item-fg-active: #fff8e8;
-  --field-bg: rgba(255, 255, 255, 0.08); --field-fg: #d7def0;
-  color: var(--text);
-}
+/* 「全部会话」那一页盖在对话区上：半透明的瓷白，隐约透出后面的宫殿 */
+:root[data-skin="maid"] .sessions-page { background: color-mix(in srgb, var(--surface) 86%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+
+/* 设置页左边那一列用的是左栏的底色（深海蓝）：字照左栏换成奶油色（上面「深蓝区」），搜索框垫一层淡的 */
+:root[data-skin="maid"] .set-side { --field-bg: rgba(255, 255, 255, 0.08); --field-fg: #d7def0; background: var(--maid-navy); box-shadow: inset -1px 0 0 rgba(226, 207, 166, 0.5); }
+:root[data-skin="maid"] .set-side .set-nav-rule { background: rgba(226, 207, 170, 0.3); }
 /* 上下文、用量的明细：条子用深海蓝的深浅和金，不用砖红 */
 :root[data-skin="maid"] .ctx-pop { --ribbon: var(--accent); --ctx-output: var(--accent); --ctx-title: var(--text); }
-
-
-/* ── 左上角：名字换成「深海女仆工坊」（index.js 照界面语言写进 --maid-brand），不画人格的头像 ── */
-:root[data-skin="maid"] .brand-identity .brand-face { display: none; }
-:root[data-skin="maid"] .brand-identity strong { font-size: 0; letter-spacing: 0; }
-:root[data-skin="maid"] .brand-identity strong::before {
-  content: var(--maid-brand, "深海女仆工坊"); color: #f3e3c0; font: 600 17px/1.2 Georgia, "Times New Roman", var(--serif); letter-spacing: 0.08em;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
-}
-/* 在线的点换成一颗深海蓝宝石、金边（原版标进行中的那颗）；连接中金色、慢慢闪，断了变灰 */
-:root[data-skin="maid"] .status-dot {
-  width: 8px; height: 8px; flex-basis: 8px; margin: 0 2px; border-radius: 1.5px; rotate: 45deg;
-  background: radial-gradient(circle at 35% 30%, #d6e3ff, #5b80e6 45%, #1d3a8f 80%);
-  box-shadow: 0 0 0 1px #d9bd83, 0 0 6px rgba(120, 160, 255, 0.55);
-}
-:root[data-skin="maid"] .status-dot.is-connecting { background: radial-gradient(circle at 35% 30%, #fff3d0, #e2c27a 50%, #9c7634 85%); box-shadow: 0 0 0 1px #f3e3c0, 0 0 6px rgba(226, 194, 122, 0.6); }
-:root[data-skin="maid"] .status-dot.is-offline { filter: grayscale(1) brightness(0.7); box-shadow: 0 0 0 1px #8f8571; }
-:root[data-skin="maid"] .brand-identity > div > span { color: #d9bd83; }
-/* 收起、展开左栏的按钮：一只奶油色的小蝴蝶结（蝴蝶结图的剪影） */
-:root[data-skin="maid"] .sidebar-toggle > svg { visibility: hidden; }
-:root[data-skin="maid"] .sidebar-toggle::before {
-  content: ""; position: absolute; inset: 7px 2px; background: #f3e3c0;
-  -webkit-mask: url("art/bow.webp") center / contain no-repeat; mask: url("art/bow.webp") center / contain no-repeat;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
-}
-:root[data-skin="maid"] .sidebar-toggle:hover::before { background: #fff8e8; }
-/* 左栏收起时蝴蝶结落在帷幔的蕾丝上：垫一个深蓝的小圆、金边 */
-:root[data-skin="maid"] .app-shell.is-sidebar-collapsed .sidebar-toggle { border-radius: 50%; background: rgba(10, 23, 59, 0.88); box-shadow: 0 0 0 1px #d9bd83, 0 2px 6px rgba(0, 0, 0, 0.35); }
