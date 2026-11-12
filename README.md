@@ -13,10 +13,10 @@
 ## 装
 
 ```sh
-miyu pkg install miyu-webui-theme-deep-whale
+miyu pkg install webui-theme-deep-whale
 ```
 
-装好后在网页的 设置 → 通用 → 主题 选「深海女仆工坊」，配色方案和吉祥物会一起切过去；配色、吉祥物也可以再单独换。要先装好网页界面（miyu-webui）。
+装好后在网页的 设置 → 通用 → 主题 选「深海女仆工坊」，配色方案和吉祥物会一起切过去；配色、吉祥物也可以再单独换。要先装好网页界面（webui）。
 
 ## 授权
 
