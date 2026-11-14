@@ -270,6 +270,11 @@
 }
 /* 框上面那一排（人格、预设、工作区的按钮，在跑时的那一行）让出丝带和蝴蝶结 */
 :root[data-skin="maid"] .dock-above { margin-bottom: 18px; }
+/* 框上面那一叠（待办、在跑时的那一行、循环下次、长期目标）也落在背景图上：有东西露着时垫一块半透明的瓷白，同框下面那一行
+   （2026-11-14 UI review 第 2 条：原来字直接压在女仆插画上看不清）；不加磨砂，理由同框下面那一行 */
+:root[data-skin="maid"] .dock-above:has(> .unfold.is-on) { position: relative; isolation: isolate; padding: 4px 12px; }
+/* 那块瓷白画在底下一层，右边停在吉祥物站的那一格前面（--character-lane），它站在框上、不站进这块里 */
+:root[data-skin="maid"] .dock-above:has(> .unfold.is-on)::before { content: ""; position: absolute; z-index: -1; inset: 0 var(--character-lane, 0px) 0 0; border-radius: 16px; background: color-mix(in srgb, var(--surface-1) 86%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent); }
 :root[data-skin="maid"] .setup-row { margin-bottom: 14px; }
 /* 首页那三颗（人格、预设、工作区）排在正中：上面是居中的标题，下面是蝴蝶结，原来靠左、悬在丝带上头，和谁都不对齐 */
 :root[data-skin="maid"] .stage.is-empty .setup-row { justify-content: center; margin-bottom: 20px; }
