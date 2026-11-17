@@ -6,6 +6,10 @@
 //! `sheets` 动画表（名字 → `{frames, ms?, loop?, box?, still?}`；一张图一行 8 帧，帧大小是 box 的宽高、没写 box 的是整个 grid），
 //! `map` 状态到动画（`now` 的那几种、`ended` 的那几种）、`extras` 闲着时隔一阵播的小动作、`react` 点一下、连点播哪段、`right` 离那条边右头多远。
 //! 少动效的停在 `still` 那一帧；页面藏起来不走；一分钟没人动睡着，有人动醒（`sleeping`、`waking` 有的才用）。
+//! 能拖、会掉、被命令列表推上去（同网页那只 Deniro，身子在 body.js）：拖着时播 `drag`（有的才播）；不站在平常那一格时根上写
+//! `data-away`，网页照它不再量这时的位置给框上面那一行让位。
+
+import { Body } from './body.js';
 
 /** 闲着隔多久来一个小动作（20～40 秒）、多久没人动睡着 */
 const EXTRA_MS = 20000;
@@ -25,7 +29,7 @@ export function character(spec) {
     el.className = `px-mascot px-mascot-${spec.id}`;
     Object.assign(el.style, { position: 'absolute', left: '0', top: '0', width: `${gw * cell}px`, height: `${gh * cell}px`, visibility: 'hidden' });
     const sprite = document.createElement('div');
-    Object.assign(sprite.style, { position: 'absolute', overflow: 'hidden', pointerEvents: 'auto', cursor: 'pointer' });
+    Object.assign(sprite.style, { position: 'absolute', overflow: 'hidden', pointerEvents: 'auto', cursor: 'grab', touchAction: 'none', userSelect: 'none' });
     const strip = document.createElement('div');
     Object.assign(strip.style, { position: 'absolute', inset: '0', backgroundRepeat: 'no-repeat', imageRendering: 'pixelated' });
     sprite.append(strip);
@@ -77,6 +81,7 @@ export function character(spec) {
     };
     const tick = () => {
       if (document.hidden || host.reduced()) return;
+      if (anim === 'drag' && sheet('drag')) { frame = (frame + 1) % sheet('drag').frames; paint(); return; }
       const s = sheet(anim);
       if (frame + 1 < s.frames) { frame += 1; paint(); return; }
       if (s.loop === false) { show(base); return; }
@@ -95,6 +100,7 @@ export function character(spec) {
     const offState = host.onState((/** @type {{now: string, ended?: string}} */ st) => {
       const next = spec.map[st.now] ?? 'idle';
       quietSince = Date.now();
+      if (anim === 'drag') { base = next; return; }   // 拖着、还在空中的：落地了再换
       if (st.ended && spec.map[st.ended]) { base = next; show(spec.map[st.ended]); return; }
       if (base === 'sleeping' && sheet('waking')) { base = next; show('waking'); return; }
       if (next === base && sheet(anim)?.loop !== false) return;
@@ -105,26 +111,62 @@ export function character(spec) {
     // 有人动：睡着的醒过来
     const offActivity = host.onActivity(() => {
       quietSince = Date.now();
-      if (base === 'sleeping') { base = 'idle'; show(sheet('waking') ? 'waking' : 'idle'); }
+      if (base === 'sleeping' && anim !== 'drag') { base = 'idle'; show(sheet('waking') ? 'waking' : 'idle'); }
     });
     // 站位：脚踩在那条边上，靠右。网页把输入框上面露着的浮层都当成台面交过来，连「跳到底部」那颗小圆钮也算：它一露，吉祥物就被
-    // 顶到它头上。比自己的身子还窄、站不下的不算台面，照旧站在输入框上（输入框那条边照主题挪过多少，记着上一回量的）
+    // 顶到它头上。比自己的身子还窄、站不下的不算台面，照旧站在输入框上（输入框那条边照主题挪过多少，记着上一回量的）。
+    // 边升上来、落下去、拖、掉都交给 body.js，这里一帧一帧照它摆
     const foot = gw * cell + (spec.right ?? 24);
     let nudge = { dx: 0, dy: 0 };
-    const offSurface = host.onSurface((/** @type {{top: number, left: number, right: number}|null} */ s) => {
-      if (!s) { el.style.visibility = 'hidden'; return; }
-      const box = host.box?.() ?? null;
-      if (box) {
-        if (s.right - s.left < foot) s = { top: Math.round(box.top + nudge.dy), left: Math.round(box.left + nudge.dx), right: Math.round(box.right + nudge.dx) };
-        else if (Math.abs(s.top - box.top) <= 40 && Math.abs(s.right - s.left - box.width) < 2) nudge = { dx: s.right - box.right, dy: s.top - box.top };
-      }
-      const x = Math.round(s.right - (spec.right ?? 24) - gw * cell);
-      const y = Math.round(s.top - gh * cell);
-      el.style.transform = `translate(${x}px, ${y}px)`;
+    const body = new Body({ width: gw * cell, right: spec.right ?? 24, view: () => ({ w: innerWidth, h: innerHeight }), reduced: () => host.reduced() });
+    let raf = 0;
+    let last = 0;
+    let backTimer = 0;
+    const place = () => {
+      if (body.mode === 'edge' && !body.edge) { el.style.visibility = 'hidden'; return; }
+      const { x, y } = body.where();
+      el.style.transform = `translate(${Math.round(x - (gw * cell) / 2)}px, ${Math.round(y - gh * cell)}px)`;
       el.style.visibility = '';
+      if (body.home()) delete el.dataset.away;
+      else el.dataset.away = '';
+    };
+    /** 不在平常那一格的：到点跳回去 */
+    const scheduleBack = () => {
+      clearTimeout(backTimer);
+      backTimer = 0;
+      if (body.backAt === null) return;
+      backTimer = window.setTimeout(() => { backTimer = 0; body.goHome(performance.now()); scheduleBack(); kick(); }, Math.max(0, body.backAt - performance.now()));
+    };
+    const frameStep = (/** @type {number} */ t) => {
+      raf = 0;
+      const landed = body.step(last ? t - last : 16, t);
+      last = t;
+      place();
+      if (landed) {
+        if (anim === 'drag') show(base);
+        scheduleBack();
+      }
+      if (body.moving()) raf = requestAnimationFrame(frameStep);
+    };
+    /** 有东西要动了：推帧到停下 */
+    const kick = () => {
+      place();
+      if (!raf && body.moving()) { last = 0; raf = requestAnimationFrame(frameStep); }
+    };
+    const offSurface = host.onSurface((/** @type {{top: number, left: number, right: number}|null} */ s) => {
+      const box = host.box?.() ?? null;
+      let onBox = false;
+      if (s && box) {
+        if (s.right - s.left < foot) { s = { top: Math.round(box.top + nudge.dy), left: Math.round(box.left + nudge.dx), right: Math.round(box.right + nudge.dx) }; onBox = true; }
+        else if (Math.abs(s.top - box.top) <= 40 && Math.abs(s.right - s.left - box.width) < 2) { nudge = { dx: s.right - box.right, dy: s.top - box.top }; onBox = true; }
+      }
+      body.setEdge(s, onBox);
+      kick();
     });
+    const onResize = () => { body.resized(); kick(); };
+    addEventListener('resize', onResize);
     // 点一下：往被点的那边躲，连着点是挠痒痒
-    sprite.addEventListener('click', (e) => {
+    const poke = (/** @type {PointerEvent} */ e) => {
       const now = Date.now();
       quietSince = now;
       if (base === 'sleeping') { base = 'idle'; show(sheet('waking') ? 'waking' : 'idle'); clicked = now; return; }
@@ -132,12 +174,45 @@ export function character(spec) {
       const pick = now - clicked < TICKLE_MS ? spec.react?.tickle : e.clientX < r.left + r.width / 2 ? spec.react?.left : spec.react?.right;
       clicked = now;
       if (pick && sheet(pick)) show(pick);
+    };
+    // 拖：左键（手指）按住跟着走，松手掉下去；没挪动的算点了一下
+    sprite.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      sprite.setPointerCapture(e.pointerId);
+      body.grab(e.clientX, e.clientY, performance.now());
+      clearTimeout(backTimer);
     });
+    sprite.addEventListener('pointermove', (e) => {
+      if (!sprite.hasPointerCapture(e.pointerId)) return;
+      if (body.dragTo(e.clientX, e.clientY, performance.now())) {
+        quietSince = Date.now();
+        sprite.style.cursor = 'grabbing';
+        if (sheet('drag')) show('drag');
+      }
+      place();
+    });
+    const up = (/** @type {PointerEvent} */ e) => {
+      if (!sprite.hasPointerCapture(e.pointerId)) return;
+      sprite.releasePointerCapture(e.pointerId);
+      sprite.style.cursor = 'grab';
+      const thrown = body.release(performance.now());
+      if (thrown) {
+        if (body.mode !== 'air' && anim === 'drag') show(base);
+        scheduleBack();
+        kick();
+      } else if (e.type === 'pointerup') poke(e);
+    };
+    sprite.addEventListener('pointerup', up);
+    sprite.addEventListener('pointercancel', up);
 
     show(base);
     return {
       el,
-      dispose: () => { clearInterval(timer); offState(); offActivity(); offSurface(); },
+      dispose: () => {
+        clearInterval(timer); clearTimeout(backTimer); cancelAnimationFrame(raf); removeEventListener('resize', onResize);
+        offState(); offActivity(); offSurface();
+      },
     };
   };
 }
