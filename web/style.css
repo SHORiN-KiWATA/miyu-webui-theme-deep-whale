@@ -119,6 +119,9 @@
     var(--maid-gold-line) right 8px top 40px / 1.25px calc(100% - 40px - 64px) no-repeat,
     var(--maid-navy);
   box-shadow: inset -1px 0 0 rgba(255, 245, 215, 0.82), inset -3px 0 0 rgba(226, 207, 166, 0.5);
+  /* 里面几块照左栏的宽排，不让最宽的那块把整列撑出左栏（2026-11-17 主人验收第 37 条：拖到最窄时铭牌、「新建会话」伸出右边被切掉——
+     底下那块小铭牌左右各让 70px 给角花，最窄也要 252px，整列跟着它宽）；量窄不窄用的容器 maid-side */
+  grid-template-columns: minmax(0, 1fr); container: maid-side / inline-size;
 }
 
 /* 名字那一行做成金线框的头：深蓝渐变、细金边，上面两个圆角、下面平着接金线框（原版 Logo 行 css:854） */
@@ -129,10 +132,12 @@
 :root[data-skin="maid"] .brand-toggle-slot { flex-basis: 40px; }
 /* 名字换成「深海女仆工坊」（index.js 照界面语言写进 --maid-brand），不画人格的头像 */
 :root[data-skin="maid"] .brand-identity .brand-face { display: none; }
-:root[data-skin="maid"] .brand-identity strong { font-size: 0; letter-spacing: 0; }
+:root[data-skin="maid"] .brand-row { min-width: 0; }
+:root[data-skin="maid"] .brand-identity strong { display: block; min-width: 0; font-size: 0; letter-spacing: 0; }
+/* 放不下的名字截成省略号（左栏拖窄了），不伸出铭牌 */
 :root[data-skin="maid"] .brand-identity strong::before {
-  content: var(--maid-brand, "深海女仆工坊"); color: var(--maid-cream); font: 600 17px/1.2 var(--maid-serif); letter-spacing: 0.08em;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  content: var(--maid-brand, "深海女仆工坊"); display: block; overflow: hidden; color: var(--maid-cream); font: 600 17px/1.2 var(--maid-serif); letter-spacing: 0.08em;
+  text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 :root[data-skin="maid"] .brand-identity > div > span { color: var(--maid-gold); }
 /* 在线的点换成一颗深海蓝宝石、金边（原版标进行中的那颗）；连接中金色，断了变灰 */
@@ -212,6 +217,17 @@
 :root[data-skin="maid"] .sidebar-actions :is(.icon-button, button) { color: var(--maid-cream); }
 :root[data-skin="maid"] .sidebar-actions .icon-button { width: 30px; height: 30px; }
 :root[data-skin="maid"] .sidebar-actions :is(.icon-button, button):hover { background: rgba(164, 183, 229, 0.18); color: var(--maid-cream-hi); }
+/* 左栏拖窄了（网页最窄 200px）：底下两角的花饰中间放不下小铭牌，去掉铭牌只留两颗按钮；顶上铭牌的名字小一号、字距收紧，
+   「新建会话」瓷牌两头的花边窄一点 */
+@container maid-side (max-width: 240px) {
+  :root[data-skin="maid"] .sidebar-footer { padding: 0 64px 14px; }
+  :root[data-skin="maid"] .sidebar-actions { min-width: 0; padding: 0; background: none; }
+  :root[data-skin="maid"] .brand-identity strong::before { font-size: 15px; letter-spacing: 0.04em; }
+  :root[data-skin="maid"] .sidebar .sidebar-nav > .sidebar-nav-row:first-child {
+    padding: 0 26px; letter-spacing: 0.02em;
+    background-size: 26px 100%, 26px 100%, calc(100% - 51px) 100%;
+  }
+}
 
 /* ══ 四、右栏（待办、后台任务、文件修改、展示文件）：和左栏一对，深海蓝、金线框、四角花饰，卡片是瓷白的、金边 ══ */
 :root[data-skin="maid"] .side-column:not(.is-overlay) {
