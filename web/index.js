@@ -69,8 +69,11 @@ export function apply(ctx) {
   }).catch((err) => console.warn('深海女仆工坊：读不到配色', err));
   ctx.on('skin.changed', syncPalette);
   ctx.effect(() => () => unPalette?.());
-  // 吉祥物的落脚点：输入框外面的蕾丝框、丝带比框高出约 20px，站在框上的照它往上挪（网页的 anchorOffsets，±40px 以内）
-  const anchorOffsets = { composer: { dy: -20 } };
+  // 吉祥物的落脚点：输入框外面的蕾丝框、丝带比框高出约 20px，站在框上的照它往上挪（网页的 anchorOffsets，±40px 以内）。
+  // 手机上（窄屏）站的那一截丝带只露下半，照上挪会悬在半空（2026-11-17 主人验收第 38 条），贴着框的上沿站，同默认主题。
+  // 网页每回量站的那条边都现读这一格，所以写成 getter，换宽窄当场跟着变
+  const narrow = matchMedia('(max-width: 640px)');
+  const anchorOffsets = { get composer() { return { dy: narrow.matches ? -2 : -20 }; } };
   ctx.slots.mount('skin.packs', { id: 'maid', name: ctx.text('name'), order: 30, tokens, palette: 'maid', character: 'deepy', anchorOffsets });
 
   // 小鲸鱼 Deepy 挂进网页的「吉祥物」（随便搭）；选这个主题时顺带选上它（skin.packs 的 character）

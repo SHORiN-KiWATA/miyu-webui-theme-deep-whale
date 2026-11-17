@@ -294,6 +294,8 @@
 :root[data-skin="maid"] .setup-row { margin-bottom: 14px; }
 /* 首页那三颗（人格、预设、工作区）排在正中：上面是居中的标题，下面是蝴蝶结，原来靠左、悬在丝带上头，和谁都不对齐 */
 :root[data-skin="maid"] .stage.is-empty .setup-row { justify-content: center; margin-bottom: 20px; }
+/* 手机上照默认主题排：「选项」靠左，右边让给站在框上的小鲸鱼（2026-11-17 主人验收第 38 条：居中的按钮和悬着的小鲸鱼各在各的高度，看着怪） */
+@media (max-width: 640px) { :root[data-skin="maid"] .stage.is-empty .setup-row { justify-content: flex-start; margin-bottom: 18px; } }
 :root[data-skin="maid"] .setup-btn { border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent); background: color-mix(in srgb, var(--surface-1) 86%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 :root[data-skin="maid"] .setup-btn:hover { background: var(--surface-1); }
 /* 发送：深蓝渐变的小圆、金边（变量给了底和边） */
@@ -358,5 +360,13 @@
 /* 设置页左边那一列用的是左栏的底色（深海蓝）：字照左栏换成奶油色（上面「深蓝区」），搜索框垫一层淡的 */
 :root[data-skin="maid"] .set-side { --field-bg: rgba(255, 255, 255, 0.08); --field-fg: #d7def0; background: var(--maid-navy); box-shadow: inset -1px 0 0 rgba(226, 207, 166, 0.5); }
 :root[data-skin="maid"] .set-side .set-nav-rule { background: rgba(226, 207, 170, 0.3); }
+/* 新建会话的「选项」卡片（网页 W-1208、W-1209：人格、预设、工作区收成一个）：同回答的卡片一样细金边，标题、页名用衬线字；一行左边的
+   名字、段名是金色小字，现在选着的那一项用深海蓝；按钮上那一行小字（setup.opts-sub）照浅金 */
+:root[data-skin="maid"] .setup-float:has(.setup-opt) { box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent), 0 18px 44px -12px rgba(4, 10, 32, 0.55); }
+:root[data-skin="maid"] .setup-float:has(.setup-opt) .setup-float-title, :root[data-skin="maid"] .setup-opt-head strong { font-family: var(--maid-serif); letter-spacing: 0.06em; }
+:root[data-skin="maid"] :is(.setup-opt-label, .setup-opt-section) { color: color-mix(in srgb, var(--gold) 82%, var(--text)); font-family: var(--maid-serif); letter-spacing: 0.08em; }
+:root[data-skin="maid"] .setup-opt-row.is-current .setup-opt-title, :root[data-skin="maid"] .setup-opt-row.is-current > .icon:last-child { color: var(--on-primary-container); }
+:root[data-skin="maid"] .setup-opts-text small { color: color-mix(in srgb, var(--gold) 70%, var(--text-faint)); }
+
 /* 上下文、用量的明细：条子用深海蓝的深浅和金，不用砖红 */
 :root[data-skin="maid"] .ctx-pop { --ribbon: var(--accent); --ctx-output: var(--accent); --ctx-title: var(--text); }
