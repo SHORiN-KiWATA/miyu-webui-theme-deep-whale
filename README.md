@@ -18,6 +18,10 @@ miyu pkg install webui-theme-deep-whale
 
 装好后在网页的 设置 → 通用 → 主题 选「深海女仆工坊」，配色方案和吉祥物会一起切过去；配色、吉祥物也可以再单独换。要先装好网页界面（webui）。
 
+## 改代码
+
+改完在仓库根目录跑 `node --test tests/`（Node 22.7 以上，不用装别的）。发版时 `package.toml` 和 `web/manifest.json` 的 `version` 一起改，测试会核对两处一样。
+
 ## 授权
 
 代码 MIT（LICENSE）。美术（web/art/）照 CC BY-NC-SA 4.0（LICENSE-ARTWORK）：只能非商业使用，保留署名，衍生作品照同一许可。署名链：上善 → ZipZipPipe → Small-tailqwq，详见 NOTICE。
