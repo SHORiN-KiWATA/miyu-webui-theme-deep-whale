@@ -6,7 +6,8 @@
 //! - 边往下挪多了（命令列表收起）、没了：照重力掉下去，落到下面的边上或整页底边上。
 //! - 输入框自己挪了、变了大小（开关左栏、首页换成对话、改窗口）：当场跟着，同 Deniro 站在输入框上。
 //! - 左键（手指）按住拖：跟着指针走，出不了窗口；松手照拖的速度扔出去往下掉，拖到地方停住再松手的轻轻放下。
-//! - 不在平常那一格（掉在地上、放在边上别处）的，待一阵自己跳回去。
+//! - 不在平常那一格（掉在地上、放在边上别处）的，待一阵自己跳回去：照 `leap` 算好的抛物线走（每帧照抛物线算准，不随帧长短偏），
+//!   落在那一格上；站在窗口边外一截的先挪回窗口里再跳，最高点不越过整页顶边。
 //! - 少动效的：被推、掉、跳都当场到位。
 //! 坐标都是屏幕像素；`x` 是脚底中点，`y` 是脚底。
 
@@ -31,9 +32,9 @@ export function settle(lag, dt) {
   return Math.sign(lag) * Math.max(Math.abs(next), Math.abs(lag) - (RISE_PX_S * dt) / 1000);
 }
 
-/** 从 (x, y) 跳到 (tx, ty)：比高的那头再高 LEAP_EXTRA，交回起跳的速度和要多久（秒） */
+/** 从 (x, y) 跳到 (tx, ty)：比高的那头再高 LEAP_EXTRA（不越过整页顶边），交回起跳的速度和要多久（秒） */
 export function leap(/** @type {number} */ x, /** @type {number} */ y, /** @type {number} */ tx, /** @type {number} */ ty) {
-  const top = Math.min(y, ty) - LEAP_EXTRA;
+  const top = Math.max(0, Math.min(y, ty) - LEAP_EXTRA);
   const up = Math.sqrt(2 * GRAVITY * (y - top));
   const t = up / GRAVITY + Math.sqrt((2 * (ty - top)) / GRAVITY);
   return { vx: (tx - x) / t, vy: -up, t };
@@ -158,7 +159,11 @@ export class Body {
     const e = this.edge;
     if (this.mode === 'air' || this.mode === 'drag' || this.home()) return;
     if (!e) { this.backAt = now + pick(STAY_MS); return; }
-    const from = this.where();
+    const { w } = this.room.view();
+    const half = this.room.width / 2;
+    // 窗口、输入框变窄以后站在窗口边外一截的：从窗口里那一点起跳，不然第一帧就撞墙、横着的速度没了，原地跳起来再瞬移回去
+    const at = this.where();
+    const from = { x: clamp(at.x, half, w - half), y: at.y };
     const to = { x: e.right - this.homeDx, y: e.top };
     if (this.room.reduced()) { Object.assign(this, { mode: 'edge', dx: this.homeDx, lag: 0 }); return; }
     const v = leap(from.x, from.y, to.x, to.y);
@@ -177,9 +182,10 @@ export class Body {
     const { w, h } = this.room.view();
     const half = this.room.width / 2;
     const y0 = this.y;
-    this.vy += GRAVITY * s;
+    // 照抛物线算准这一帧走到哪：先加速再走会每帧多算半截重力，跳不到 leap 算的高度、落得早，横着差一截再瞬移过去，帧慢时连台面都够不着
     this.x += this.vx * s;
-    this.y += this.vy * s;
+    this.y += this.vy * s + (GRAVITY * s * s) / 2;
+    this.vy += GRAVITY * s;
     if (this.x < half || this.x > w - half) { this.x = clamp(this.x, half, w - half); this.vx = 0; }
     if (this.y < 0) { this.y = 0; this.vy = Math.max(0, this.vy); }
     const e = this.edge;
