@@ -40,9 +40,24 @@ export function character(spec) {
       strip.append(ink);
     }
 
-    /** 每张帧图先读一下，读到了才换上（不闪一下空的） */
+    /** 每张帧图先读一下，读到了才换上（不闪一下空的）。读失败的也换上，不卡在上一段；换得很快时只认最后一次 */
     const url = (/** @type {string} */ name, /** @type {string} */ tail = '') => new URL(`${name}${tail}.png`, spec.base).href;
+    /** @type {Map<string, Promise<void>|true>} 帧图 → 正在读（读完了的记 true） */
+    const loads = new Map();
+    const load = (/** @type {string} */ src) => {
+      let p = loads.get(src);
+      if (!p) {
+        const img = new Image();
+        img.src = src;
+        p = img.decode().catch(() => {}).then(() => { loads.set(src, true); });
+        loads.set(src, p);
+      }
+      return p;
+    };
+    let wanted = 0;
+    /** anim 是要放的那一段（判断都照它），drawn 是现在画着的那一段（新的一段还在读时两个不一样） */
     let anim = '';
+    let drawn = '';
     let frame = 0;
     let base = 'idle';
     let quietSince = Date.now();
@@ -53,7 +68,7 @@ export function character(spec) {
     const sheet = (/** @type {string} */ name) => spec.sheets[name];
     const boxOf = (/** @type {string} */ name) => sheet(name).box ?? [0, 0, gw, gh];
     const paint = () => {
-      const [, , w, h] = boxOf(anim);
+      const [, , w, h] = boxOf(drawn);
       const pos = `${-(frame % 8) * w * cell}px ${-Math.floor(frame / 8) * h * cell}px`;
       strip.style.backgroundPosition = pos;
       if (ink) { ink.style.maskPosition = pos; ink.style.webkitMaskPosition = pos; }
@@ -61,6 +76,14 @@ export function character(spec) {
     const show = (/** @type {string} */ name) => {
       if (!sheet(name)) name = 'idle';
       anim = name;
+      const mine = ++wanted;
+      const srcs = ink ? [url(name), url(name, '-ink')] : [url(name)];
+      if (srcs.every((s) => loads.get(s) === true)) { put(name); return; }
+      Promise.all(srcs.map(load)).then(() => { if (mine === wanted) put(name); });
+    };
+    /** 帧图读到了：换上这一段，从头放 */
+    const put = (/** @type {string} */ name) => {
+      drawn = name;
       const s = sheet(name);
       frame = host.reduced() ? (s.still ?? 0) : 0;
       const [x, y, w, h] = boxOf(name);
@@ -77,13 +100,14 @@ export function character(spec) {
     };
     const restart = () => {
       clearInterval(timer);
-      timer = window.setInterval(tick, sheet(anim).ms ?? spec.ms);
+      timer = window.setInterval(tick, sheet(drawn).ms ?? spec.ms);
     };
     const tick = () => {
       if (document.hidden || host.reduced()) return;
-      if (anim === 'drag' && sheet('drag')) { frame = (frame + 1) % sheet('drag').frames; paint(); return; }
-      const s = sheet(anim);
+      const s = sheet(drawn);
       if (frame + 1 < s.frames) { frame += 1; paint(); return; }
+      // 拖着的一直循环；新的一段还在读的，先接着放画着的这一段
+      if (drawn === 'drag' || drawn !== anim) { frame = 0; paint(); return; }
       if (s.loop === false) { show(base); return; }
       frame = 0;
       paint();
@@ -210,6 +234,7 @@ export function character(spec) {
     return {
       el,
       dispose: () => {
+        wanted += 1;
         clearInterval(timer); clearTimeout(backTimer); cancelAnimationFrame(raf); removeEventListener('resize', onResize);
         offState(); offActivity(); offSurface();
       },
