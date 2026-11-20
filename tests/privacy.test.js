@@ -1,5 +1,5 @@
 // @ts-check
-//! 私密路径（照核心仓库 `xtask/src/privacy.rs` 的同名门禁，核心施工 SCRUB-1、SCRUB-2）：仓库是公开的，被 git 跟踪的文本里不许出现
+//! 私密路径（照核心仓库 `xtask/src/privacy.rs` 的同名门禁，核心施工 SCRUB-1～SCRUB-4）：仓库是公开的，被 git 跟踪的文本里不许出现
 //! 开发机上真实用户的痕迹：`/home/<名字>`、macOS 的 `/Users/<名字>`、Windows 的 `C:\Users\<名字>`（`/`、`\\` 的写法和 WSL 的
 //! `/mnt/c` 也算）、`/tmp/claude-<数字>`、`-home-<名字>-Documents`（后者是按工作目录起的会话存档目录名）。
 //! 样例里要用家目录时，写 FICTIONAL 里的虚构名字。这里不写任何具体的人名、机器名、地址：规则只认形状，具体的名字清单属于本机，不进仓库。
@@ -18,7 +18,7 @@ import { join } from 'node:path';
  */
 const FICTIONAL = [
   'a', 'u', 'w', 'me', 'ai', 'ai.old', 'ai_2', 'ai-2', 'aim', 'alice', 'alicex', 'bob', 'admin', 'builder',
-  'someone', 'user', 'example', 'test', 'runneradmin', 'public', 'default', 'shared',
+  'someone', 'user', 'example', 'test', 'runner', 'runneradmin', 'public', 'default', 'shared',
 ];
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -37,7 +37,7 @@ function namesAfter(line, marker) {
 
 /**
  * 一行里每个用户目录的 [写法, 名字]：`/home/`、`/Users/` 和 Windows 的 `X:\Users\`，`\` 和 `\\` 都当 `/`。
- * 前面紧挨着名字字符或 `.` 的是路径中间的一段（`pages/home/`、`foo/Users/`、`/api/users/42`），不算；
+ * 前面紧挨着名字字符、`.` 或省略号 `…` 的是路径中间的一段（`pages/home/`、`foo/Users/`、`/api/users/42`），不算；
  * 盘符和 `/mnt/c` 这类 WSL 的挂载点除外。
  */
 function userDirs(line) {
@@ -51,7 +51,7 @@ function userDirs(line) {
       const before = text.slice(0, at);
       const mnt = before.lastIndexOf('/mnt/');
       const mount = before.endsWith(':') || (mnt !== -1 && before.length - mnt - '/mnt/'.length === 1);
-      if (mount || !/[A-Za-z0-9_.-]$/.test(before)) found.push([shown, nameAt(text.slice(at + marker.length))]);
+      if (mount || !/[A-Za-z0-9_.…-]$/.test(before)) found.push([shown, nameAt(text.slice(at + marker.length))]);
     }
   }
   return found;
@@ -72,8 +72,10 @@ export function scan(label, text) {
       if (!allowed(name)) found.push(`${label}:${at}：\`${shown}${name}\` 像真实用户的家目录，换成虚构的名字（见 tests/privacy.test.js）`);
     }
     if (/\/tmp\/claude-\d/.test(line)) found.push(`${label}:${at}：出现了开发机上会话的临时目录 \`/tmp/claude-<数字>\`，删掉或换成占位`);
+    // `-home-<名字>-Documents-…`：名字取到第一个 `-` 为止，后面的目录名长短不论。
     for (const name of namesAfter(line, '-home-')) {
-      if (name.endsWith('-Documents') && name.length > '-Documents'.length) {
+      const user = name.split('-')[0];
+      if (name.slice(user.length).startsWith('-Documents') && !allowed(user)) {
         found.push(`${label}:${at}：出现了按工作目录起的会话存档目录名 \`-home-…-Documents\`，删掉或换成占位`);
       }
     }
@@ -153,6 +155,16 @@ test('路径中间的 home、Users 不算用户目录', () => {
 
 test('home 后面的反斜杠转义不当分隔符', () => {
   assert.deepEqual(scan('a.js', ['"/ho', 'me\\\\134x"'].join('')), []);
+});
+
+test('前面是省略号的算路径中间', () => {
+  assert.deepEqual(scan('a.md', ['cwd=…/ho', 'me/home/onebot and …/ho', 'me/owner'].join('')), []);
+});
+
+test('完整的会话存档目录名按用户那一段判', () => {
+  assert.equal(scan('a.md', ['-ho', 'me-zhangsan-Documents-github-proj'].join('')).length, 1);
+  assert.deepEqual(scan('a.md', ['-ho', 'me-alice-Documents-github-proj'].join('')), []);
+  assert.deepEqual(scan('a.md', '-home-zhangsan-notes'), []);
 });
 
 test('会话的临时目录和存档目录名报出来', () => {
